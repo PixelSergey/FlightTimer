@@ -627,20 +627,28 @@
     if (!input) return;
     const restoreEditable = !input.readOnly;
 
-    // Making the field read-only for the rest of the tap/click prevents mobile
-    // browsers from immediately reopening the software keyboard after blur().
+    // On iOS Safari a double tap can queue a click/focus after pointerup. Keep
+    // the field temporarily read-only and blur more than once so that queued
+    // focus events cannot reopen the software keyboard.
     if (restoreEditable) input.readOnly = true;
-    input.blur();
 
-    requestAnimationFrame(() => {
-      input.blur();
+    const hide = () => {
+      if (document.activeElement === input) input.blur();
+      else input.blur();
       try {
         navigator.virtualKeyboard?.hide?.();
       } catch (error) {
         // The Virtual Keyboard API is optional; blur() remains the fallback.
       }
+    };
+
+    hide();
+    requestAnimationFrame(hide);
+    setTimeout(hide, 60);
+    setTimeout(() => {
+      hide();
       if (restoreEditable) input.readOnly = false;
-    });
+    }, 220);
   }
 
   function createIntegerBox(initialValue, ariaLabel, onChange, { readonly = false, max = 9999 } = {}) {
