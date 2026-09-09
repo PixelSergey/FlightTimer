@@ -820,3 +820,11 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* Prevent mobile browsers (especially iOS Safari) from auto-zooming focused form fields.
+   max() preserves any input styling that is already larger than 16px. */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em) !important;
+}
