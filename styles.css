@@ -100,7 +100,7 @@ svg { display: block; }
 .icon-button.compact svg { width: 18px; height: 18px; }
 
 .icon-button:focus-visible,
-.date-button:focus-visible,
+.native-date-input:focus-visible,
 .primary-button:focus-visible,
 .secondary-button:focus-visible,
 .action-button:focus-visible,
@@ -116,6 +116,7 @@ svg { display: block; }
 }
 
 .date-button {
+  position: relative;
   min-width: 0;
   min-height: 42px;
   border: 0;
@@ -136,6 +137,25 @@ svg { display: block; }
 .date-button:hover { background: var(--surface-subtle); }
 .date-button:active { background: var(--surface-hover); }
 .date-icon { width: 14px; height: 14px; color: var(--muted); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.native-date-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  color-scheme: light dark;
+}
+.native-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
 
 .aircraft-toolbar {
   position: relative;
@@ -410,6 +430,12 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 .timebox:focus-within,
 .integer-box:focus-within { border-color: var(--input-line); background: var(--surface); }
 .timebox { touch-action: manipulation; }
+.block-timebox {
+  width: 136px;
+  min-width: 136px;
+  height: 43px;
+}
+.block-timebox .timebox-visual { font-size: 1.03rem; }
 .timebox-visual {
   position: absolute;
   inset: 0;
@@ -452,7 +478,7 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   font-weight: 800;
   letter-spacing: .05em;
 }
-.integer-box { min-width: 68px; }
+.integer-box { display: block; min-width: 68px; }
 .integer-box input {
   width: 100%;
   height: 100%;
@@ -468,6 +494,23 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   padding: 0 6px;
 }
 .integer-box input[readonly] { color: var(--text); opacity: 1; }
+.flight-duration-box.integer-box,
+.flight-duration-box.integer-box.readonly {
+  min-width: 0;
+  width: 100%;
+  height: 37px;
+  border-color: transparent;
+  border-radius: 9px;
+  background: var(--surface-subtle);
+}
+.flight-duration-box.integer-box input,
+.flight-duration-box.integer-box input[readonly] {
+  color: var(--text);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: -.035em;
+  opacity: 1;
+}
 .suffix { color: var(--muted); font-weight: 700; font-size: .7rem; letter-spacing: .04em; }
 
 .event-actions {
@@ -627,31 +670,63 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 .field-grid { display: grid; gap: 9px; }
 .two-col { grid-template-columns: 1fr 1fr; }
 .settings-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
+  display: block;
+  min-width: 0;
   margin: 0;
-  padding: 3px;
+  padding: 0;
   border: 0;
+}
+.settings-group legend {
+  width: 100%;
+  padding: 0 1px 7px;
+  color: var(--muted);
+  font-size: .65rem;
+  font-weight: 790;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.tracking-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  padding: 2px;
+  border: 1px solid var(--divider);
   border-radius: 11px;
   background: var(--surface-subtle);
+  overflow: clip;
 }
-.settings-group legend { width: 100%; padding: 0 1px 7px; color: var(--muted); font-size: .65rem; font-weight: 790; text-transform: uppercase; letter-spacing: .07em; }
 .radio-row {
   position: relative;
-  min-height: 39px;
+  min-width: 0;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  padding: 0 7px;
-  border-radius: 9px;
+  padding: 0 5px;
+  border-radius: 8px;
   color: var(--muted);
   cursor: pointer;
+  overflow: hidden;
 }
-.radio-row:has(input:checked) { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(24, 32, 45, .10); }
+.radio-row:has(input:checked) {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--divider) 80%, transparent), 0 1px 2px rgba(24, 32, 45, .06);
+}
 .radio-row input { position: absolute; opacity: 0; pointer-events: none; }
-.radio-row span { font-weight: 720; font-size: .72rem; text-align: center; letter-spacing: .01em; }
+.radio-row span {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-weight: 720;
+  font-size: .7rem;
+  line-height: 1.15;
+  text-align: center;
+  letter-spacing: .005em;
+  white-space: normal;
+}
 .settings-note { margin: -1px 1px 0; color: var(--muted); font-size: .74rem; line-height: 1.4; }
 .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 1px; }
 
@@ -707,7 +782,10 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   .event-card { gap: 3px; }
   .event-side { min-width: 45px; }
   .event-label { min-width: 57px; font-size: .63rem; }
+  .block-timebox { width: 128px; min-width: 128px; }
+  .radio-row span { font-size: .66rem; }
   .timebox-visual { padding-inline: 5px; font-size: .89rem; }
+  .block-timebox .timebox-visual { font-size: .99rem; }
 }
 
 @media (min-width: 700px) {
