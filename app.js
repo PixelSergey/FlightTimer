@@ -576,17 +576,24 @@
     input.value = digits;
     paint();
 
-    // iOS browsers all use WebKit. In Chrome on iOS, relying on a parent
-    // pointerup handler to focus a visually-overlaid input can leave the
-    // input focused without actually presenting the software keyboard.
-    // Focus the real input synchronously from the touch gesture itself.
-    // Because the input covers the whole custom time box, touchstart fires
-    // directly on the native form control and remains eligible to open the
-    // iOS keyboard.
-    input.addEventListener('touchstart', () => {
+    // The real input is stretched over the entire custom time box. Let the
+    // browser focus it natively from the tap instead of calling focus() from
+    // touchstart. On iOS, focusing on touchstart happens before the visual
+    // viewport shrinks for the keyboard, which can suppress WebKit's normal
+    // scroll-to-focused-control behavior.
+    input.addEventListener('focus', () => {
       if (!onChange || input.readOnly) return;
-      focusTimeInput(input);
-    }, { passive: true });
+
+      // Keep manual entry appending at the end while preserving native focus.
+      try {
+        const end = input.value.length;
+        input.setSelectionRange(end, end);
+      } catch (error) {
+        // Selection placement is best-effort.
+      }
+
+      ensureFocusedTimeBoxVisible(input);
+    });
 
     input.addEventListener('beforeinput', (event) => {
       if (!onChange) return;
@@ -624,10 +631,9 @@
         lastTapAt = 0;
       } else {
         lastTapAt = now;
-        // Keep a pointer-event fallback for desktop/Android and iOS versions
-        // that also dispatch Pointer Events. The touchstart handler above is
-        // what guarantees that Chrome on iOS gets a synchronous native focus.
-        focusTimeInput(input);
+        // Do not call focus() here. The pointer event originates on the native
+        // input itself, so allowing its default action gives iOS WebKit the
+        // same focus + keyboard + auto-scroll path as an ordinary text field.
       }
     });
 
@@ -639,24 +645,62 @@
     return fragment;
   }
 
-  function focusTimeInput(input) {
-    if (!input || input.readOnly) return;
+  function ensureFocusedTimeBoxVisible(input) {
+    if (!input) return;
 
-    try {
-      input.focus({ preventScroll: false });
-    } catch (error) {
-      input.focus();
-    }
+    const isTouchDevice = window.matchMedia?.('(pointer: coarse)').matches || 'ontouchstart' in window;
+    if (!isTouchDevice) return;
 
-    // Position the insertion point explicitly. This helps WebKit treat the
-    // transparent overlay as an actively editable text control rather than a
-    // merely programmatically-focused element.
-    try {
-      const end = input.value.length;
-      input.setSelectionRange(end, end);
-    } catch (error) {
-      // setSelectionRange is best-effort; focus itself is the important part.
-    }
+    const target = input.closest('[data-timebox]') || input;
+    const viewport = window.visualViewport;
+    let stopped = false;
+    let rafId = 0;
+    const timers = [];
+
+    const nudgeIntoView = () => {
+      if (stopped || document.activeElement !== input) return;
+
+      const rect = target.getBoundingClientRect();
+      const viewportTop = viewport ? viewport.offsetTop : 0;
+      const viewportHeight = viewport ? viewport.height : window.innerHeight;
+      const viewportBottom = viewportTop + viewportHeight;
+      const topMargin = 16;
+      const bottomMargin = 20;
+
+      let delta = 0;
+      if (rect.bottom > viewportBottom - bottomMargin) {
+        delta = rect.bottom - (viewportBottom - bottomMargin);
+      } else if (rect.top < viewportTop + topMargin) {
+        delta = rect.top - (viewportTop + topMargin);
+      }
+
+      if (Math.abs(delta) > 1) {
+        // Scroll the document itself. scrollIntoView() can choose an
+        // overflow-hidden ancestor on WebKit, so a root scroll is more
+        // predictable for this layout.
+        window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+      }
+    };
+
+    const scheduleNudge = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(nudgeIntoView);
+    };
+
+    // WebKit changes the visual viewport after focus when the keyboard opens.
+    // Track that resize and also retry at a few short delays because Chrome on
+    // iOS can report the final keyboard viewport over multiple frames.
+    viewport?.addEventListener('resize', scheduleNudge);
+    viewport?.addEventListener('scroll', scheduleNudge);
+    [80, 180, 320, 520].forEach((delay) => timers.push(setTimeout(scheduleNudge, delay)));
+
+    input.addEventListener('blur', () => {
+      stopped = true;
+      cancelAnimationFrame(rafId);
+      timers.forEach(clearTimeout);
+      viewport?.removeEventListener('resize', scheduleNudge);
+      viewport?.removeEventListener('scroll', scheduleNudge);
+    }, { once: true });
   }
 
   function dismissKeyboard(input) {
