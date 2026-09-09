@@ -576,6 +576,18 @@
     input.value = digits;
     paint();
 
+    // iOS browsers all use WebKit. In Chrome on iOS, relying on a parent
+    // pointerup handler to focus a visually-overlaid input can leave the
+    // input focused without actually presenting the software keyboard.
+    // Focus the real input synchronously from the touch gesture itself.
+    // Because the input covers the whole custom time box, touchstart fires
+    // directly on the native form control and remains eligible to open the
+    // iOS keyboard.
+    input.addEventListener('touchstart', () => {
+      if (!onChange || input.readOnly) return;
+      focusTimeInput(input);
+    }, { passive: true });
+
     input.addEventListener('beforeinput', (event) => {
       if (!onChange) return;
       if (event.inputType !== 'insertText' || !/^\d$/.test(event.data || '')) return;
@@ -612,10 +624,10 @@
         lastTapAt = 0;
       } else {
         lastTapAt = now;
-        // Allow the browser to perform its normal mobile focus scrolling.
-        // Using preventScroll here kept the software keyboard from bringing
-        // custom time boxes into view like ordinary text/number inputs.
-        input.focus();
+        // Keep a pointer-event fallback for desktop/Android and iOS versions
+        // that also dispatch Pointer Events. The touchstart handler above is
+        // what guarantees that Chrome on iOS gets a synchronous native focus.
+        focusTimeInput(input);
       }
     });
 
@@ -625,6 +637,26 @@
     }
 
     return fragment;
+  }
+
+  function focusTimeInput(input) {
+    if (!input || input.readOnly) return;
+
+    try {
+      input.focus({ preventScroll: false });
+    } catch (error) {
+      input.focus();
+    }
+
+    // Position the insertion point explicitly. This helps WebKit treat the
+    // transparent overlay as an actively editable text control rather than a
+    // merely programmatically-focused element.
+    try {
+      const end = input.value.length;
+      input.setSelectionRange(end, end);
+    } catch (error) {
+      // setSelectionRange is best-effort; focus itself is the important part.
+    }
   }
 
   function dismissKeyboard(input) {

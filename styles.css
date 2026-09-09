@@ -508,6 +508,7 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 .timebox-visual {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr .46fr 1fr 1fr;
   place-items: center;
@@ -524,15 +525,22 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 .timebox-input {
   position: absolute;
   inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
   border: 0;
   outline: 0;
-  opacity: .01;
+  /* Keep the native input fully present for iOS WebKit's focus/keyboard
+     heuristics. Hide its text rather than making the whole control nearly
+     transparent; the custom visual layer beneath remains what the user sees. */
+  opacity: 1;
   color: transparent;
+  -webkit-text-fill-color: transparent;
   caret-color: transparent;
   background: transparent;
   padding: 0;
+  pointer-events: auto;
+  cursor: text;
 }
 .timebox.readonly,
 .integer-box.readonly { background: transparent; border-color: var(--divider); }
