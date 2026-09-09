@@ -506,7 +506,7 @@
 
     const paths = {
       plus: ['M12 5v14', 'M5 12h14'],
-      trash: ['M3 6h18', 'M8 6V4h8v2', 'M19 6l-1 14H6L5 6', 'M10 11v6', 'M14 11v6'],
+      trash: ['M3 6h18', 'M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2', 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6', 'M10 11v6', 'M14 11v6'],
       check: ['m5 12 4 4L19 6']
     };
     for (const d of paths[name] || []) {
@@ -848,7 +848,7 @@
     const lines = segments.map((segment) => {
       return [
         'PIC',
-        day.date,
+        formatExportDate(day.date),
         settings.airfield || '',
         localTimeToUtc(segment.off.time, settings.utcOffset),
         settings.airfield || '',
@@ -872,7 +872,7 @@
   function buildDayBackupText(day) {
     if (!day) return '';
     const settings = { ...DEFAULT_SETTINGS, ...(day.settings || {}) };
-    const lines = [`${day.registration} ${day.date}`];
+    const lines = [`${day.registration} ${formatExportDate(day.date)}`];
 
     for (const event of day.events || []) {
       if (event.type === 'off') {
@@ -881,7 +881,11 @@
         if (settings.trackingMode === 'time-only') {
           lines.push(event.minutes === '' || event.minutes === null || event.minutes === undefined ? '' : String(event.minutes));
         } else {
-          lines.push(`${formatBackupClockTime(event.takeoff)}/${formatBackupClockTime(event.landing)}`);
+          const flightMinutes = calculateFlightMinutes(event, 'times');
+          const useFullTimes = Number.isFinite(Number(flightMinutes)) && Number(flightMinutes) > 60;
+          const takeoff = useFullTimes ? formatBackupClockTime(event.takeoff) : formatBackupClockMinutes(event.takeoff);
+          const landing = useFullTimes ? formatBackupClockTime(event.landing) : formatBackupClockMinutes(event.landing);
+          lines.push(`${takeoff}/${landing}`);
         }
       } else if (event.type === 'on') {
         lines.push(`/${formatBackupClockTime(event.time)}`);
@@ -896,6 +900,16 @@
 
   function formatBackupClockTime(digits) {
     return digits?.length === 4 ? digits : '';
+  }
+
+  function formatBackupClockMinutes(digits) {
+    return digits?.length === 4 ? digits.slice(2) : '';
+  }
+
+  function formatExportDate(key) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(key || ''))) return String(key || '');
+    const [year, month, day] = key.split('-');
+    return `${day}.${month}.${year}`;
   }
 
   async function copyDayBackup() {
@@ -929,7 +943,7 @@
     const anchor = document.createElement('a');
     const safeRegistration = (day.registration || 'aircraft').replace(/[^A-Z0-9-]/gi, '_');
     anchor.href = url;
-    anchor.download = `${safeRegistration}_${day.date}_backup.txt`;
+    anchor.download = `${safeRegistration}_${formatExportDate(day.date)}_backup.txt`;
     document.body.append(anchor);
     anchor.click();
     anchor.remove();

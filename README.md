@@ -37,4 +37,9 @@ For each completed off-block/on-block segment, **Export to pilot log** copies on
 
 `PIC`, date, airfield, off-block UTC, airfield, on-block UTC, aircraft type, registration.
 
-The date uses `YYYY-MM-DD`; off-block and on-block times are converted to UTC using that day's saved UTC offset.
+The date uses `DD.MM.YYYY`; off-block and on-block times are converted to UTC using that day's saved UTC offset.
+
+
+## Day backup format
+
+The day backup also uses `DD.MM.YYYY`. Clock times are exported without colons. In **T/O + LDG + TIME** mode, flights of 60 minutes or less use only the minute components (for example `43/10`); flights longer than 60 minutes use full four-digit times (for example `1243/1350`). Off-block and on-block entries retain their full four-digit times.
