@@ -828,3 +828,46 @@ select,
 textarea {
   font-size: max(16px, 1em) !important;
 }
+
+
+/* Export-page day backup controls */
+.backup-section {
+  border-top: 1px solid var(--divider);
+  margin-top: 8px;
+  padding-top: 18px;
+}
+
+.backup-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.backup-actions .primary-button,
+.backup-actions .secondary-button {
+  width: 100%;
+  margin-top: 0;
+}
+
+.backup-download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.backup-download-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.secondary-button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}

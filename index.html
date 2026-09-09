@@ -76,6 +76,22 @@
             </button>
             <p class="status-message" id="copyStatus" role="status"></p>
           </div>
+
+          <div class="export-section backup-section">
+            <div class="section-label">DAY BACKUP</div>
+            <p class="export-hint">Copy or download a compact plain-text backup of the day's event sequence.</p>
+            <div class="backup-actions">
+              <button class="primary-button" id="copyDayBackup" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy backup</span>
+              </button>
+              <button class="secondary-button backup-download-button" id="downloadDayBackup" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                <span>Download</span>
+              </button>
+            </div>
+            <p class="status-message" id="backupStatus" role="status"></p>
+          </div>
         </section>
       </div>
     </section>

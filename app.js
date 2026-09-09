@@ -33,6 +33,9 @@
     statsCard: document.querySelector('#statsCard'),
     copyPilotLog: document.querySelector('#copyPilotLog'),
     copyStatus: document.querySelector('#copyStatus'),
+    copyDayBackup: document.querySelector('#copyDayBackup'),
+    downloadDayBackup: document.querySelector('#downloadDayBackup'),
+    backupStatus: document.querySelector('#backupStatus'),
     datePicker: document.querySelector('#datePicker'),
     settingsDialog: document.querySelector('#settingsDialog'),
     settingsForm: document.querySelector('#settingsForm'),
@@ -142,6 +145,8 @@
     els.settingsButton.addEventListener('click', openSettingsDialog);
     els.exportButton.addEventListener('click', () => setView(currentView === 'tracker' ? 'export' : 'tracker'));
     els.copyPilotLog.addEventListener('click', copyPilotLog);
+    els.copyDayBackup.addEventListener('click', copyDayBackup);
+    els.downloadDayBackup.addEventListener('click', downloadDayBackup);
 
     els.datePicker.addEventListener('change', () => {
       if (!els.datePicker.value) return;
@@ -707,7 +712,11 @@
     }));
 
     els.copyPilotLog.disabled = !day || buildBlockSegments(events).length === 0;
+    const backupUnavailable = !day || events.length === 0;
+    els.copyDayBackup.disabled = backupUnavailable;
+    els.downloadDayBackup.disabled = backupUnavailable;
     els.copyStatus.textContent = '';
+    els.backupStatus.textContent = '';
   }
 
   function calculateStats(events, settings = DEFAULT_SETTINGS) {
@@ -849,6 +858,75 @@
       console.warn('Clipboard write failed.', error);
       els.copyStatus.textContent = 'Clipboard unavailable in this browser.';
     }
+  }
+
+  function buildDayBackupText(day) {
+    if (!day) return '';
+    const settings = { ...DEFAULT_SETTINGS, ...(day.settings || {}) };
+    const lines = [`${day.registration} ${day.date}`];
+
+    for (const event of day.events || []) {
+      if (event.type === 'off') {
+        lines.push(`${formatBackupClockTime(event.time)}/`);
+      } else if (event.type === 'flight') {
+        if (settings.trackingMode === 'time-only') {
+          lines.push(event.minutes === '' || event.minutes === null || event.minutes === undefined ? '' : String(event.minutes));
+        } else {
+          lines.push(`${formatBackupClockTime(event.takeoff)}/${formatBackupClockTime(event.landing)}`);
+        }
+      } else if (event.type === 'on') {
+        lines.push(`/${formatBackupClockTime(event.time)}`);
+      } else if (event.type === 'fuel') {
+        const liters = event.liters === '' || event.liters === null || event.liters === undefined ? '' : String(event.liters);
+        lines.push(`+${liters}L`);
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  function formatBackupClockTime(digits) {
+    return digits?.length === 4 ? formatTimeDigits(digits) : '';
+  }
+
+  async function copyDayBackup() {
+    const day = getDay();
+    if (!day || !(day.events || []).length) {
+      els.backupStatus.textContent = 'Add at least one event first.';
+      return;
+    }
+
+    const payload = buildDayBackupText(day);
+    try {
+      await copyText(payload);
+      els.backupStatus.textContent = 'Day backup copied.';
+      showToast('Backup copied');
+    } catch (error) {
+      console.warn('Backup clipboard write failed.', error);
+      els.backupStatus.textContent = 'Clipboard unavailable in this browser.';
+    }
+  }
+
+  function downloadDayBackup() {
+    const day = getDay();
+    if (!day || !(day.events || []).length) {
+      els.backupStatus.textContent = 'Add at least one event first.';
+      return;
+    }
+
+    const payload = buildDayBackupText(day);
+    const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    const safeRegistration = (day.registration || 'aircraft').replace(/[^A-Z0-9-]/gi, '_');
+    anchor.href = url;
+    anchor.download = `${safeRegistration}_${day.date}_backup.txt`;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    els.backupStatus.textContent = 'Day backup downloaded.';
+    showToast('Backup downloaded');
   }
 
   async function copyText(text) {
