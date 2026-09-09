@@ -351,25 +351,31 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 .flight-field .integer-box { min-width: 0; width: 100%; }
 
 .event-side {
-  /* Fixed columns keep NO CYC and NO DROP indicators on the exact same x-axis. */
-  width: 74px;
-  min-width: 74px;
+  /* Give the status control its own fixed-width column. The ball, not the
+     label text, defines the horizontal alignment for every event type. */
+  --status-column-width: 48px;
+  --remove-column-width: 32px;
+  width: calc(var(--status-column-width) + var(--remove-column-width));
+  min-width: calc(var(--status-column-width) + var(--remove-column-width));
   display: grid;
-  grid-template-columns: 42px 32px;
+  grid-template-columns: var(--status-column-width) var(--remove-column-width);
   align-items: center;
   justify-items: center;
   gap: 0;
 }
 .toggle-control {
-  width: 42px;
+  grid-column: 1;
+  width: var(--status-column-width);
+  min-width: var(--status-column-width);
   display: grid;
   grid-template-rows: auto 32px;
   align-items: center;
   justify-items: center;
+  justify-self: center;
   gap: 2px;
 }
 .event-side-label {
-  width: 100%;
+  width: var(--status-column-width);
   color: var(--muted);
   font-size: .61rem;
   font-weight: 790;
@@ -403,6 +409,8 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   position: relative;
   width: 32px;
   height: 32px;
+  justify-self: center;
+  margin-inline: auto;
   border: 0;
   border-radius: 999px;
   background: transparent;
