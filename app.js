@@ -612,7 +612,10 @@
         lastTapAt = 0;
       } else {
         lastTapAt = now;
-        input.focus({ preventScroll: true });
+        // Allow the browser to perform its normal mobile focus scrolling.
+        // Using preventScroll here kept the software keyboard from bringing
+        // custom time boxes into view like ordinary text/number inputs.
+        input.focus();
       }
     });
 
