@@ -1,0 +1,17 @@
+{
+  "name": "Jump Pilot Log",
+  "short_name": "Pilot Log",
+  "description": "A lightweight jump-pilot flight and block time tracker.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111820",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

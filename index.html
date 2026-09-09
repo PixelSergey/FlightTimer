@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="A lightweight jump-pilot flight and block time tracker.">
+  <title>Jump Pilot Log</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell" aria-label="Jump Pilot Log">
+    <section class="app-card">
+      <header class="topbar">
+        <button class="icon-button" id="previousDate" type="button" aria-label="Previous day">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button class="date-button" id="dateButton" type="button" aria-label="Choose date">
+          <span id="dateLabel">—</span>
+          <svg class="date-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/></svg>
+        </button>
+        <button class="icon-button" id="nextDate" type="button" aria-label="Next day">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </header>
+
+      <div class="aircraft-toolbar">
+        <button class="icon-button" id="settingsButton" type="button" aria-label="Aircraft settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.51a2 2 0 0 1-1 1.74l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.73l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+
+        <div class="registration-control" id="registrationControl">
+          <input id="registrationInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="AIRCRAFT" maxlength="12" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="aircraftMenu">
+          <button class="registration-toggle" id="aircraftDropdownButton" type="button" aria-label="Show saved aircraft" aria-expanded="false" aria-controls="aircraftMenu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="aircraft-menu" id="aircraftMenu" role="listbox" hidden></div>
+        </div>
+
+        <button class="icon-button" id="exportButton" type="button" aria-label="Open export page">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>
+          <svg class="back-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+      </div>
+
+      <div class="view-stage" id="viewStage">
+        <section class="view-panel tracker-panel" id="trackerPanel" aria-label="Flight tracker">
+          <div class="empty-state" id="emptyState">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 21 4l-7.5 18-2.2-8.8L3 11.5Z"/><path d="m11.3 13.2 4.4-4.4"/></svg>
+            <p>Enter or select an aircraft registration to start.</p>
+          </div>
+
+          <div id="eventsList" class="events-list" aria-live="polite"></div>
+          <div id="eventActions" class="event-actions"></div>
+        </section>
+
+        <section class="view-panel export-panel" id="exportPanel" aria-label="Statistics and export" aria-hidden="true">
+          <div class="panel-heading">
+            <span class="eyebrow">DAY SUMMARY</span>
+            <h2>Flight statistics</h2>
+          </div>
+          <div class="stats-card" id="statsCard"></div>
+          <div class="export-section">
+            <div class="section-label">PILOT LOG</div>
+            <p class="export-hint">Copies one tab-separated line for each completed block period.</p>
+            <button class="primary-button" id="copyPilotLog" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Export to pilot log</span>
+            </button>
+            <p class="status-message" id="copyStatus" role="status"></p>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="dateDialog" class="modal">
+    <form method="dialog" class="modal-card" id="dateForm">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">JUMP DAY</div>
+          <h2>Choose date</h2>
+        </div>
+        <button class="icon-button compact" value="cancel" aria-label="Close date picker">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <label class="field-label" for="datePicker">Date</label>
+      <input class="field-input" id="datePicker" type="date" required>
+      <div class="modal-actions">
+        <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+        <button class="primary-button" id="applyDate" value="default" type="submit">Open date</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog" class="modal">
+    <form method="dialog" class="modal-card settings-card" id="settingsForm">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow">AIRCRAFT SETTINGS</div>
+          <h2 id="settingsTitle">Settings</h2>
+        </div>
+        <button class="icon-button compact" value="cancel" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <fieldset class="settings-group">
+        <legend>Flight time tracking</legend>
+        <label class="radio-row">
+          <input type="radio" name="trackingMode" value="times">
+          <span>T/O + LDG + TIME</span>
+        </label>
+        <label class="radio-row">
+          <input type="radio" name="trackingMode" value="time-only">
+          <span>TIME ONLY</span>
+        </label>
+      </fieldset>
+
+      <div class="field-grid two-col">
+        <label>
+          <span class="field-label">UTC offset</span>
+          <input class="field-input" id="utcOffsetInput" type="number" min="-12" max="14" step="0.25" inputmode="decimal" placeholder="+3">
+        </label>
+        <label>
+          <span class="field-label">Airfield</span>
+          <input class="field-input uppercase" id="airfieldInput" type="text" maxlength="4" minlength="4" autocapitalize="characters" spellcheck="false" placeholder="EFXX">
+        </label>
+      </div>
+
+      <label>
+        <span class="field-label">Aircraft type</span>
+        <input class="field-input uppercase" id="aircraftTypeInput" type="text" maxlength="4" minlength="3" autocapitalize="characters" spellcheck="false" placeholder="C208">
+      </label>
+
+      <p class="settings-note">Saved as this aircraft's default. Existing jump days keep their own settings.</p>
+
+      <div class="modal-actions">
+        <button class="secondary-button" value="cancel" type="submit">Cancel</button>
+        <button class="primary-button" id="saveSettings" value="default" type="submit">Save settings</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="timeBoxTemplate">
+    <div class="timebox" data-timebox>
+      <div class="timebox-visual" aria-hidden="true">
+        <span data-d0>–</span><span data-d1>–</span><span class="time-colon">:</span><span data-d2>–</span><span data-d3>–</span>
+      </div>
+      <input class="timebox-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Time">
+    </div>
+  </template>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
