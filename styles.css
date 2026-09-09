@@ -253,7 +253,13 @@ svg { display: block; }
 .aircraft-option:hover,
 .aircraft-option:focus-visible { background: var(--surface-subtle); outline-offset: -1px; }
 .aircraft-option[aria-selected="true"] { background: var(--accent-soft); color: var(--accent-strong); }
-.aircraft-option .check { width: 15px; height: 15px; }
+.aircraft-option .aircraft-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  stroke-width: 1.75;
+  opacity: .92;
+}
 .aircraft-empty {
   padding: 10px 12px;
   color: var(--muted);
