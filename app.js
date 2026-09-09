@@ -33,6 +33,8 @@
     statsCard: document.querySelector('#statsCard'),
     copyPilotLog: document.querySelector('#copyPilotLog'),
     copyStatus: document.querySelector('#copyStatus'),
+    dateDialog: document.querySelector('#dateDialog'),
+    dateForm: document.querySelector('#dateForm'),
     datePicker: document.querySelector('#datePicker'),
     settingsDialog: document.querySelector('#settingsDialog'),
     settingsForm: document.querySelector('#settingsForm'),
@@ -81,6 +83,7 @@
   function bindGlobalEvents() {
     els.previousDate.addEventListener('click', () => changeDateBy(-1));
     els.nextDate.addEventListener('click', () => changeDateBy(1));
+    els.dateButton.addEventListener('click', openDateDialog);
 
     els.registrationInput.addEventListener('input', () => {
       const clean = normalizeRegistration(els.registrationInput.value, false);
@@ -143,10 +146,14 @@
     els.exportButton.addEventListener('click', () => setView(currentView === 'tracker' ? 'export' : 'tracker'));
     els.copyPilotLog.addEventListener('click', copyPilotLog);
 
-    els.datePicker.addEventListener('change', () => {
+    els.dateForm.addEventListener('submit', (event) => {
+      const submitter = event.submitter;
+      if (!submitter || submitter.value === 'cancel') return;
+      event.preventDefault();
       if (!els.datePicker.value) return;
       selectedDate = els.datePicker.value;
       selectedRegistration = normalizeRegistration(state.lastRegistration || selectedRegistration || '');
+      els.dateDialog.close();
       setView('tracker');
       renderAll();
     });
@@ -168,7 +175,6 @@
 
   function renderAll() {
     els.dateLabel.textContent = formatDateHeader(selectedDate);
-    els.datePicker.value = selectedDate;
     els.registrationInput.value = selectedRegistration;
     renderAircraftList();
     renderTracker();
@@ -200,7 +206,6 @@
       label.textContent = registration;
       option.append(label);
       if (registration === selectedRegistration) option.append(iconElement('check', 'check'));
-      option.addEventListener('pointerdown', (event) => event.preventDefault());
       option.addEventListener('click', () => selectAircraftOption(registration));
       return option;
     }));
@@ -220,9 +225,9 @@
 
   function selectAircraftOption(registration) {
     els.registrationInput.value = registration;
-    els.registrationInput.blur();
     closeAircraftMenu();
     commitRegistration(registration);
+    els.registrationInput.focus({ preventScroll: true });
   }
 
   function commitRegistration(value = els.registrationInput.value) {
@@ -312,9 +317,7 @@
     const row = document.createElement('div');
     row.className = 'event-row';
     row.append(labelNode('OFF-BLOCK'));
-    const timeBox = createTimeBox(event.time || '', 'Off-block time', (digits) => updateEvent(event.id, { time: digits }));
-    timeBox.querySelector('[data-timebox]').classList.add('block-timebox');
-    row.append(timeBox);
+    row.append(createTimeBox(event.time || '', 'Off-block time', (digits) => updateEvent(event.id, { time: digits })));
     main.append(row);
 
     const side = card.querySelector('.event-side');
@@ -329,9 +332,7 @@
     const row = document.createElement('div');
     row.className = 'event-row';
     row.append(labelNode('ON-BLOCK'));
-    const timeBox = createTimeBox(event.time || '', 'On-block time', (digits) => updateEvent(event.id, { time: digits }));
-    timeBox.querySelector('[data-timebox]').classList.add('block-timebox');
-    row.append(timeBox);
+    row.append(createTimeBox(event.time || '', 'On-block time', (digits) => updateEvent(event.id, { time: digits })));
     main.append(row);
     card.querySelector('.event-side').append(removeControl(event.id));
     return card;
@@ -378,7 +379,6 @@
       duration.append(labelNode('TIME'));
       const calculated = calculateFlightMinutes(event, 'times');
       durationBox = createIntegerBox(calculated ?? '', 'Calculated flight time in minutes', null, { readonly: true, max: 999 });
-      durationBox.classList.add('flight-duration-box');
       duration.append(durationBox);
 
       grid.append(to, ldg, duration);
@@ -601,7 +601,6 @@
         input.value = current;
         paint();
         onChange(current);
-        input.blur();
         showToast(`Time set to ${formatTimeDigits(current)}`);
         lastTapAt = 0;
       } else {
@@ -743,6 +742,11 @@
     return segments;
   }
 
+  function openDateDialog() {
+    els.datePicker.value = selectedDate;
+    if (typeof els.dateDialog.showModal === 'function') els.dateDialog.showModal();
+  }
+
   function openSettingsDialog() {
     if (!selectedRegistration) {
       els.registrationInput.focus();
@@ -808,6 +812,9 @@
 
     const settings = { ...DEFAULT_SETTINGS, ...(day.settings || {}) };
     const lines = segments.map((segment) => {
+      const landings = segment.flights.length;
+      const drops = segment.flights.filter((flight) => !flight.noDrop).length;
+      const block = formatDuration(segment.blockMinutes);
       return [
         'PIC',
         day.date,

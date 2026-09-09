@@ -35,6 +35,6 @@ There is no server. Aircraft profiles, settings, dates and events remain in `loc
 
 For each completed off-block/on-block segment, **Export to pilot log** copies one tab-separated line with these fields:
 
-`PIC`, date, airfield, off-block UTC, airfield, on-block UTC, aircraft type, registration.
+`PIC`, date, airfield, off-block UTC, airfield, on-block UTC, aircraft type, registration, block time, blank, block time, blank, block time, blank, landings, blank, `Parachute drops`, parachute drops.
 
-The date uses `YYYY-MM-DD`; off-block and on-block times are converted to UTC using that day's saved UTC offset.
+Block times use `HH:MM`. The date uses `YYYY-MM-DD`.
