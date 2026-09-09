@@ -1,4 +1,4 @@
-const CACHE = 'jump-pilot-log-v2';
+const CACHE = 'jump-pilot-log-v3';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
