@@ -955,16 +955,17 @@
 
     for (const event of day.events || []) {
       if (event.type === 'off') {
-        lines.push(`${formatBackupClockTime(event.time)}/`);
+        lines.push(`${formatBackupClockTime(event.time)}/${event.noCycle ? ' no cyc' : ''}`);
       } else if (event.type === 'flight') {
         if (settings.trackingMode === 'time-only') {
-          lines.push(event.minutes === '' || event.minutes === null || event.minutes === undefined ? '' : String(event.minutes));
+          const value = event.minutes === '' || event.minutes === null || event.minutes === undefined ? '' : String(event.minutes);
+          lines.push(`${value}${event.noDrop ? ' no drop' : ''}`);
         } else {
           const flightMinutes = calculateFlightMinutes(event, 'times');
           const useFullTimes = Number.isFinite(Number(flightMinutes)) && Number(flightMinutes) > 60;
           const takeoff = useFullTimes ? formatBackupClockTime(event.takeoff) : formatBackupClockMinutes(event.takeoff);
           const landing = useFullTimes ? formatBackupClockTime(event.landing) : formatBackupClockMinutes(event.landing);
-          lines.push(`${takeoff}/${landing}`);
+          lines.push(`${takeoff}/${landing}${event.noDrop ? ' no drop' : ''}`);
         }
       } else if (event.type === 'on') {
         lines.push(`/${formatBackupClockTime(event.time)}`);
