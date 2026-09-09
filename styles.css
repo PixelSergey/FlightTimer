@@ -351,30 +351,61 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
 .flight-field .integer-box { min-width: 0; width: 100%; }
 
 .event-side {
-  min-width: 50px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 1px;
+  /* Fixed columns keep NO CYC and NO DROP indicators on the exact same x-axis. */
+  width: 74px;
+  min-width: 74px;
+  display: grid;
+  grid-template-columns: 42px 32px;
+  align-items: center;
+  justify-items: center;
+  gap: 0;
 }
-.event-side > div {
-  display: grid !important;
-  justify-items: center !important;
-  gap: 2px !important;
+.toggle-control {
+  width: 42px;
+  display: grid;
+  grid-template-rows: auto 32px;
+  align-items: center;
+  justify-items: center;
+  gap: 2px;
 }
 .event-side-label {
+  width: 100%;
   color: var(--muted-2);
   font-size: .53rem;
-  font-weight: 790;
+  font-weight: 800;
   line-height: 1;
   white-space: nowrap;
   letter-spacing: .045em;
+  text-align: center;
   text-transform: uppercase;
 }
+
+/* In T/O + LDG + TIME mode, align NO DROP with the field headers instead of
+   vertically centering the entire control beside the flight row. */
+.flight-event .event-side {
+  align-self: stretch;
+  align-items: start;
+  padding-top: 0;
+}
+.flight-event .toggle-control {
+  grid-template-rows: 10px 32px;
+  gap: 2px;
+}
+.flight-event .event-side-label {
+  align-self: start;
+  color: var(--muted);
+  font-size: .61rem;
+  font-weight: 790;
+  letter-spacing: .075em;
+}
+.flight-event .remove-button {
+  margin-top: 14px;
+}
+
 .toggle-dot {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -382,29 +413,50 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   cursor: pointer;
   touch-action: manipulation;
 }
-.toggle-dot::after {
+.toggle-dot::before {
   content: "";
   position: absolute;
   inset: 5px;
-  border: 1.5px solid var(--input-line);
+  border: 1.5px solid color-mix(in srgb, var(--muted-2) 62%, var(--surface));
   border-radius: 999px;
   background: var(--surface);
-  transition: background .12s ease, border-color .12s ease, transform .12s ease, box-shadow .12s ease;
+  box-shadow: 0 1px 2px rgba(20, 24, 31, .05);
+  transition: background .14s ease, border-color .14s ease, transform .12s ease, box-shadow .14s ease;
 }
-.toggle-dot[aria-pressed="true"]::after {
+.toggle-dot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: transparent;
+  transform: translate(-50%, -50%) scale(.6);
+  transition: background .14s ease, transform .14s ease;
+}
+.toggle-dot:hover::before {
+  border-color: var(--muted);
+  background: var(--surface-subtle);
+}
+.toggle-dot[aria-pressed="true"]::before {
   border-color: var(--accent);
   background: var(--accent);
-  box-shadow: inset 0 0 0 3px var(--accent-soft);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--accent) 28%, transparent);
 }
-.toggle-dot:active::after { transform: scale(.86); }
+.toggle-dot[aria-pressed="true"]::after {
+  background: #fff;
+  transform: translate(-50%, -50%) scale(1);
+}
+.toggle-dot:active::before { transform: scale(.88); }
 
 .remove-button {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   background: transparent;
-  color: var(--muted-2);
+  color: color-mix(in srgb, var(--muted-2) 88%, transparent);
   display: grid;
   place-items: center;
   padding: 0;
@@ -412,9 +464,20 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   touch-action: manipulation;
   transition: color .12s ease, background .12s ease, transform .12s ease;
 }
-.remove-button svg { width: 15px; height: 15px; }
-.remove-button:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); }
-.remove-button:active { transform: scale(.9); }
+.remove-button svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.75;
+}
+.event-side > .remove-button:only-child { grid-column: 2; }
+.remove-button:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+.remove-button:active {
+  transform: scale(.9);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
 
 .timebox,
 .integer-box {
@@ -780,7 +843,6 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
   .view-panel { padding-inline: 9px; }
   .flight-layout { gap: 4px; }
   .event-card { gap: 3px; }
-  .event-side { min-width: 45px; }
   .event-label { min-width: 57px; font-size: .63rem; }
   .block-timebox { width: 128px; min-width: 128px; }
   .radio-row span { font-size: .66rem; }
@@ -813,7 +875,6 @@ body.export-mode .export-panel { position: relative; transform: translateX(0); o
     --shadow-menu: 0 16px 42px rgba(0,0,0,.42);
   }
   .primary-button { background: #eef2f5; color: #151a20; border-color: #eef2f5; }
-  .toggle-dot[aria-pressed="true"]::after { box-shadow: inset 0 0 0 3px #402718; }
   .toast { background: #eef2f5; color: #151a20; }
 }
 

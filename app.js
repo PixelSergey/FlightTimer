@@ -354,6 +354,7 @@
       row.append(suffixNode('MIN'));
       main.append(row);
     } else {
+      card.classList.add('flight-event');
       const grid = document.createElement('div');
       grid.className = 'flight-layout';
 
@@ -505,7 +506,7 @@
 
     const paths = {
       plus: ['M12 5v14', 'M5 12h14'],
-      trash: ['M3 6h18', 'M8 6V4h8v2', 'M19 6l-1 14H6L5 6', 'M10 11v5', 'M14 11v5'],
+      trash: ['M3 6h18', 'M8 6V4h8v2', 'M19 6l-1 14H6L5 6', 'M10 11v6', 'M14 11v6'],
       check: ['m5 12 4 4L19 6']
     };
     for (const d of paths[name] || []) {
@@ -894,7 +895,7 @@
   }
 
   function formatBackupClockTime(digits) {
-    return digits?.length === 4 ? formatTimeDigits(digits) : '';
+    return digits?.length === 4 ? digits : '';
   }
 
   async function copyDayBackup() {
